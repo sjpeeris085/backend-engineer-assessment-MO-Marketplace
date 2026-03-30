@@ -4,16 +4,15 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { winstonLogger } from './common/logger/winston.logger';
+import { initializeFirebase } from '@config/firebase.config';
 
 async function bootstrap() {
+  initializeFirebase();
+
   const app = await NestFactory.create(AppModule, {
     logger: winstonLogger,
   });
-  /*
-{
-    logger: winstonLogger,
-  }
-*/
+
   // register swagger
   const config = new DocumentBuilder()
     .setTitle('Backend Assessment API')

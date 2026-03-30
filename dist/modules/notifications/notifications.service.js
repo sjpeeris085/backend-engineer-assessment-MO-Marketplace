@@ -39,53 +39,31 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppModule = void 0;
+exports.NotificationsService = void 0;
 const common_1 = require("@nestjs/common");
-const typeorm_1 = require("@nestjs/typeorm");
-const core_1 = require("@nestjs/core");
-const nest_winston_1 = require("nest-winston");
-const winston = __importStar(require("winston"));
-const app_controller_1 = require("./app.controller");
-const app_service_1 = require("./app.service");
-const products_module_1 = require("./modules/products/products.module");
-const orders_module_1 = require("./modules/orders/orders.module");
-const notifications_module_1 = require("./modules/notifications/notifications.module");
-const logging_interceptor_1 = require("./common/interceptors/logging.interceptor");
-let AppModule = class AppModule {
+const admin = __importStar(require("firebase-admin"));
+let NotificationsService = class NotificationsService {
+    onModuleInit() {
+        if (!admin.apps.length) {
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                }),
+            });
+        }
+    }
+    async sendPush(token, title, body) {
+        const message = {
+            notification: { title, body },
+            token: token,
+        };
+        return admin.messaging().send(message);
+    }
 };
-exports.AppModule = AppModule;
-exports.AppModule = AppModule = __decorate([
-    (0, common_1.Module)({
-        imports: [
-            typeorm_1.TypeOrmModule.forRoot({
-                type: 'postgres',
-                host: process.env.DB_HOST,
-                port: 5432,
-                username: 'postgres',
-                password: 'root',
-                database: 'backend_assessment',
-                autoLoadEntities: true,
-                synchronize: true,
-            }),
-            products_module_1.ProductsModule,
-            orders_module_1.OrdersModule,
-            notifications_module_1.NotificationsModule,
-            nest_winston_1.WinstonModule.forRoot({
-                transports: [
-                    new winston.transports.Console({
-                        format: winston.format.combine(winston.format.timestamp(), winston.format.printf(({ level, message, timestamp, url, method }) => `${timestamp} [${level}] [${method}] ${message} ${url}`)),
-                    }),
-                ],
-            }),
-        ],
-        controllers: [app_controller_1.AppController],
-        providers: [
-            app_service_1.AppService,
-            {
-                provide: core_1.APP_INTERCEPTOR,
-                useClass: logging_interceptor_1.LoggingInterceptor,
-            },
-        ],
-    })
-], AppModule);
-//# sourceMappingURL=app.module.js.map
+exports.NotificationsService = NotificationsService;
+exports.NotificationsService = NotificationsService = __decorate([
+    (0, common_1.Injectable)()
+], NotificationsService);
+//# sourceMappingURL=notifications.service.js.map

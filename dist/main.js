@@ -5,7 +5,9 @@ const swagger_1 = require("@nestjs/swagger");
 const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const winston_logger_1 = require("./common/logger/winston.logger");
+const firebase_config_1 = require("./config/firebase.config");
 async function bootstrap() {
+    (0, firebase_config_1.initializeFirebase)();
     const app = await core_1.NestFactory.create(app_module_1.AppModule, {
         logger: winston_logger_1.winstonLogger,
     });
