@@ -37,6 +37,13 @@ async function bootstrap() {
     origin: '*',
   });
 
-  await app.listen(process.env.PORT ?? 3000);
+  const PORT = Number(process.env.PORT) || 8080;
+  // await app.listen(PORT, '0.0.0.0');
+
+  await app.listen(PORT, '0.0.0.0', () => {
+    console.log(
+      `:::::::::::::::::: API STARTED SERVING ON PORT ${PORT} ::::::::::::::::::`,
+    );
+  });
 }
 bootstrap();
