@@ -12,6 +12,7 @@ import { ProductsModule } from '@modules/products/products.module';
 import { OrdersModule } from '@modules/orders/orders.module';
 import { NotificationsModule } from '@modules/notifications/notifications.module';
 import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
+import { UsersModule } from '@modules/users/users.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { LoggingInterceptor } from '@common/interceptors/logging.interceptor';
     ProductsModule,
     OrdersModule,
     NotificationsModule,
+    UsersModule,
     WinstonModule.forRoot({
       transports: [
         new winston.transports.Console({

@@ -2,12 +2,14 @@
 
 @import url("https://fonts.googleapis.com/css2?family=Momo+Signature&display=swap");
 
-@tailwind utilities;
+@import "tailwindcss";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 }
 
 .ant-btn-primary {

@@ -11,12 +11,16 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { NotificationsService } from '@modules/notifications/notifications.service';
+import { UsersService } from '@modules/users/users.service';
+import { SubscribedService } from '@modules/users/enums/user.enums';
+import { CreateMessageDto } from '@modules/notifications/dto/create.message';
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
 
     @InjectRepository(Order)
     private readonly orderRepo: Repository<Order>,
@@ -25,6 +29,7 @@ export class OrderService {
     private readonly productRepo: Repository<Product>,
   ) {}
 
+  // create order with items, calculate total, and trigger notifications
   async create(dto: CreateOrderDto, idempotencyKey: string) {
     if (!idempotencyKey) {
       throw new BadRequestException('Idempotency-Key header is required');
@@ -59,9 +64,26 @@ export class OrderService {
 
       let totalAmount = 0;
 
+      const {
+        recipientName,
+        recipientPhone,
+        recipientAddressLine1,
+        recipientAddressLine2,
+        city,
+        postalCode,
+        country,
+      } = dto;
+
       const order = manager.create(Order, {
         idempotencyKey,
         items: [],
+        recipientName,
+        recipientPhone,
+        recipientAddressLine1,
+        recipientAddressLine2,
+        city,
+        postalCode,
+        country,
       });
 
       for (const item of dto.items) {
@@ -87,15 +109,38 @@ export class OrderService {
       }
 
       order.totalAmount = totalAmount;
-      const userToken = 'test-token-12345';
       try {
         const orderResult = await manager.save(order);
-        // Trigger the notification!
-        await this.notificationsService.sendPush(
-          userToken,
-          'Order Confirmed',
-          `Your HeladivaTech order #${order.id} is being processed.`,
-        );
+        /*
+        Trigger the notification to single device
+          const userToken =   'dHGx70nG2I46VhfiCeCOQB:APA91bEAfYMUw6DrgcGTXpDGP4KXUKnE3TFEcvsZwQIza6BMONgL93DFc9CPC_6p_rHl6XWzInUbUFEBemhyKaBf61g_9YirHI0krnuq0T2XXO8_NaXfmlk';
+          await this.notificationsService.sendPush(
+            userToken,
+            'Order Confirmed',
+            `Your order #${order.id} is being processed.`,
+          );
+        */
+
+        // send notifications to admins
+        // Get admin users subscribed to order notifications
+        const adminUsers = await this.usersService.getAdminUsers([
+          SubscribedService.ORDER_NOTIFICATIONS,
+        ]);
+
+        // extract tokens
+        const adminFcmTokens = adminUsers
+          .flatMap((u) => u.fcmTokens || [])
+          .filter((t) => !!t);
+        // create message
+        const message: CreateMessageDto = {
+          notification: {
+            title: 'New Order Received',
+            body: `A new order for Rs. ${order.totalAmount} has been placed by ${recipientName}.`,
+          },
+          tokens: adminFcmTokens, // array of saved tokens
+        };
+
+        await this.notificationsService.sendPushToMany(message);
 
         return orderResult;
       } catch (err) {
