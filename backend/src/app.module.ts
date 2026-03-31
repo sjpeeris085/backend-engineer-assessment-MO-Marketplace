@@ -29,8 +29,8 @@ dotenv.config();
       database: process.env.DB_NAME, // 'backend_assessment'
       // entities: [Product],
       autoLoadEntities: true,
-      // synchronize: true, // dev only
-      synchronize: process.env.NODE_ENV !== 'production',
+      synchronize: true, // dev only
+      // synchronize: process.env.NODE_ENV !== 'production',
 
       // Google Cloud Production
       // extra:
