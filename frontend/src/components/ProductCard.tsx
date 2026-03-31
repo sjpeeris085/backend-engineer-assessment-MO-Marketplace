@@ -1,14 +1,27 @@
 import React from 'react';
 import { type Product } from '../schemas/product.schema';
 import { formatCurrency } from '../utils/formatCurrency';
+import { Button } from 'antd';
+import { ShoppingCartOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { addToCart } from '../utils/cart';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/products/${product.id}`);
+  };
+
   return (
-    <div className="w-full bg-white rounded-xl shadow-sm hover:shadow-lg hover:scale-[1.02] transition-transform duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
+    <div 
+      onClick={handleCardClick}
+      className="w-full bg-white rounded-xl shadow-sm hover:shadow-lg hover:scale-[1.02] transition-transform duration-300 overflow-hidden border border-gray-100 flex flex-col h-full cursor-pointer"
+    >
       {/* Image placeholder */}
       <div className="w-full h-48 bg-gray-200 flex items-center justify-center shrink-0">
         <span className="text-gray-500">Image</span>
@@ -25,9 +38,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <span className="text-2xl font-bold tracking-tight text-gray-900">
             {formatCurrency(product.price)}
           </span>
-          <button className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer">
-            View Details
-          </button>
+          <Button 
+            type="primary" 
+            icon={<ShoppingCartOutlined />} 
+            onClick={(e) => {
+              e.stopPropagation();
+              addToCart(product);
+            }}
+          >
+            Add
+          </Button>
         </div>
       </div>
     </div>

@@ -24,14 +24,30 @@ export class ProductsService {
   }
 
   async findAll(query: QueryProductDto) {
-    const { page = 1, limit = 10 } = query;
+    const { page = 1, limit = 10, search } = query;
 
-    const [data, total] = await this.productRepo.findAndCount({
-      where: { isActive: true },
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
+    const qb = this.productRepo
+      .createQueryBuilder('product')
+      .where('product.isActive = :isActive', { isActive: true });
+
+    // Search logic
+    if (search) {
+      qb.andWhere('(LOWER(product.name) LIKE LOWER(:search))', {
+        search: `%${search}%`,
+      });
+    }
+
+    qb.orderBy('product.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await qb.getManyAndCount();
+    // const [data, total] = await this.productRepo.findAndCount({
+    //   where: { isActive: true },
+    //   skip: (page - 1) * limit,
+    //   take: limit,
+    //   order: { createdAt: 'DESC' },
+    // });
 
     return {
       data,

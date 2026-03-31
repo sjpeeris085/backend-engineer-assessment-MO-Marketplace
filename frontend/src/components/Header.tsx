@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "antd";
+import { ShoppingCartOutlined } from "@ant-design/icons";
+import { getCart } from "../utils/cart";
 
 import { type User, removeUser } from "../utils/auth";
 
@@ -10,6 +13,19 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ user, onLoginClick }) => {
   const navigate = useNavigate();
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      const cart = getCart();
+      const count = cart.reduce((total, item) => total + item.quantity, 0);
+      setCartCount(count);
+    };
+    
+    updateCartCount();
+    window.addEventListener('cartUpdated', updateCartCount);
+    return () => window.removeEventListener('cartUpdated', updateCartCount);
+  }, []);
 
   const handleLogout = () => {
     removeUser();
@@ -39,6 +55,16 @@ export const Header: React.FC<HeaderProps> = ({ user, onLoginClick }) => {
       <div className="flex-1 mx-4 hidden md:block" />
 
       <div className="flex items-center space-x-4">
+        <div 
+          onClick={() => navigate('/cart')}
+          className="cursor-pointer flex items-center hover:bg-gray-50 p-2 rounded-full transition-colors mr-2"
+          title="Cart"
+        >
+          <Badge count={cartCount} offset={[-2, 6]}>
+            <ShoppingCartOutlined className="text-2xl text-gray-700 hover:text-indigo-600 transition-colors" />
+          </Badge>
+        </div>
+
         {user ? (
           <>
             <span className="text-gray-700 font-medium hidden sm:block">Hello, {user.name || user.email.split('@')[0]}</span>
