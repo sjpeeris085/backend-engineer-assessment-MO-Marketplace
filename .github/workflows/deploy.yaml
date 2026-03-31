@@ -1,0 +1,99 @@
+name: Build and Deploy API Docker Image to Google Cloud Run
+
+on:
+  push:
+    branches:
+      - main # or your preferred branch
+    paths:
+      - "backend/**" # Trigger only if changes occur in the Rest API folder
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Docker Buildx (use BuildKit for multi-platform builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Cache Docker layers to speed up builds
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-build-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+      # Authenticate with Google Cloud using secrets (NEW FIX)
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
+
+      # How to grant permisions: Create a Service Account in Google Cloud
+      # Create a Google Cloud Service Account with permissions to push images to Google Container Registry and deploy to Cloud Run.
+
+      # Go to IAM & Admin in the Google Cloud Console.
+      # Create a new Service Account with the following roles:
+      # roles/storage.admin (to push images to GCR).
+      # roles/run.admin (to deploy to Cloud Run).
+      # roles/iam.serviceAccountUser (to allow using the service account).
+      # Download the JSON key for the service account.
+
+      # Set up gcloud CLI (Fixed version)
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: momarketplace-mock-ecommerce
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t asia-south1-docker.pkg.dev/momarketplace-mock-ecommerce/momarketplace-docker-repo/momarketplace-api-docker-img:latest ./backend
+
+      # Create Repo
+      - name: Create Repo in Google Artifact Registry (GAR)
+        run: |
+          gcloud artifacts repositories create momarketplace-docker-repo \
+          --repository-format=docker \
+          --location=asia-south1 \
+          --description="Mo-Marketplace Artifact Repository" || true
+
+      # Get a list of image versions sorted by creation time
+      # Keep the latest 2 images
+      - name: Delete Old Docker Images from Artifact Registry (Retain Only Last 2)
+        run: |
+          IMAGE_LIST=$(gcloud artifacts docker images list asia-south1-docker.pkg.dev/momarketplace-mock-ecommerce/momarketplace-docker-repo/momarketplace-api-docker-img \
+          --format="value(digest)" --sort-by="~createTime" --limit=100)
+
+          KEEP_COUNT=2
+          IMAGE_ARRAY=($IMAGE_LIST)
+          DELETE_COUNT=${#IMAGE_ARRAY[@]}-KEEP_COUNT
+
+          if [ "$DELETE_COUNT" -gt "0" ]; then
+            for (( i=0; i<$DELETE_COUNT; i++ )); do
+              DIGEST=${IMAGE_ARRAY[$i]}
+              echo "Deleting old image with digest: $DIGEST"
+              gcloud artifacts docker images delete asia-south1-docker.pkg.dev/momarketplace-mock-ecommerce/momarketplace-docker-repo/momarketplace-api-docker-img@$DIGEST --quiet
+            done
+          fi
+
+      # Push the Docker image to Google Artifact Registry (GAR)
+      - name: Push Docker image to Artifact Registry
+        run: |
+          gcloud auth configure-docker asia-south1-docker.pkg.dev
+          docker push asia-south1-docker.pkg.dev/momarketplace-mock-ecommerce/momarketplace-docker-repo/momarketplace-api-docker-img:latest
+
+      # Deploy the Docker image to Google Cloud Run
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud run deploy gayathricctv-rest-api \
+            --image asia-south1-docker.pkg.dev/momarketplace-mock-ecommerce/momarketplace-docker-repo/momarketplace-api-docker-img:latest \
+            --platform managed \
+            --region asia-south1 \
+            --memory 1024Mi \
+            --allow-unauthenticated
