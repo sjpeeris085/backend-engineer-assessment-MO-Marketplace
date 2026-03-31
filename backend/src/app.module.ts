@@ -23,7 +23,7 @@ dotenv.config();
       type: 'postgres',
       // host: process.env.DB_HOST,
       // port: 5432,
-      host: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
+      // host: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
       username: process.env.DB_USERNAME, // 'postgres',
       password: process.env.DB_PASSWORD, // 'root'
       database: process.env.DB_NAME, // 'backend_assessment'
@@ -36,7 +36,7 @@ dotenv.config();
       extra:
         process.env.NODE_ENV === 'production'
           ? {
-              host: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
+              socketPath: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
             }
           : {},
     }),
