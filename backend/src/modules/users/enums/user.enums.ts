@@ -1,0 +1,9 @@
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  CUSTOMER = 'CUSTOMER',
+}
+
+export enum SubscribedService {
+  ORDER_NOTIFICATIONS = 'ORDER_NOTIFICATIONS',
+  NEW_USER_REGISTRATIONS = 'NEW_USER_REGISTRATIONS',
+}

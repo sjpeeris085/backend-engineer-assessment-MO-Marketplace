@@ -12,6 +12,13 @@
 /.next/
 /out/
 
+# NestJS
+backend/dist/
+backend/node_modules/
+
+# React
+frontend/build/
+
 # production
 /build
 
