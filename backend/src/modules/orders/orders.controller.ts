@@ -1,8 +1,16 @@
-import { Controller, Post, Body, Headers } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, Headers, Query, Get } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { OrderService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderResponseDto } from './dto/order-response.dto';
+import { QueryOrderDto } from './dto/query-order.dto';
+import { OrderStatus } from './enums/order.enum';
 
 @ApiTags('Orders') // group in Swagger UI
 @Controller('orders')
@@ -36,5 +44,15 @@ export class OrderController {
     @Headers('Idempotency-key') idempotencyKey: string,
   ) {
     return this.orderService.create(dto, idempotencyKey);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get paginated order list' })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 10 })
+  @ApiQuery({ name: 'status', required: false, example: OrderStatus.PLACED })
+  @ApiResponse({ status: 200, description: 'Order list fetched' })
+  findAll(@Query() query: QueryOrderDto) {
+    return this.orderService.findAll(query);
   }
 }

@@ -14,6 +14,8 @@ import { NotificationsService } from '@modules/notifications/notifications.servi
 import { UsersService } from '@modules/users/users.service';
 import { SubscribedService } from '@modules/users/enums/user.enums';
 import { CreateMessageDto } from '@modules/notifications/dto/create.message';
+import { QueryOrderDto } from './dto/query-order.dto';
+import { OrderStatus } from './enums/order.enum';
 
 @Injectable()
 export class OrderService {
@@ -151,5 +153,25 @@ export class OrderService {
         throw err;
       }
     });
+  }
+
+  async findAll(query: QueryOrderDto) {
+    const { page = 1, limit = 10, status = OrderStatus.PLACED } = query;
+
+    const [data, total] = await this.orderRepo.findAndCount({
+      where: { status: status },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 }

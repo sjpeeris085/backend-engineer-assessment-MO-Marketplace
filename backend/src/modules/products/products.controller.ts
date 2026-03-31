@@ -30,10 +30,6 @@ export class ProductsController {
   @ApiQuery({ name: 'page', required: false, example: 1 })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   @ApiResponse({ status: 200, description: 'Product list fetched' })
-  @ApiOperation({ summary: 'Get paginated product list' })
-  @ApiQuery({ name: 'page', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, example: 10 })
-  @ApiResponse({ status: 200, description: 'Product list fetched' })
   findAll(@Query() query: QueryProductDto) {
     return this.productsService.findAll(query);
   }
