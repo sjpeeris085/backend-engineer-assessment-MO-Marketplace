@@ -45,5 +45,7 @@ async function bootstrap() {
       `:::::::::::::::::: API STARTED SERVING ON PORT ${PORT} ::::::::::::::::::`,
     );
   });
+
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
