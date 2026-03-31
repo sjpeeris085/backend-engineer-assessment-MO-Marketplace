@@ -41,7 +41,7 @@ jobs:
       # Create a new Service Account with the following roles:
       # roles/storage.admin (to push images to GCR).
       # roles/run.admin (to deploy to Cloud Run).
-      # roles/iam.serviceAccountUser (to allow using the service account).
+      # roles/iam.serviceAccountUser (to allow using the service account). allow policies -> Artifact Registry Administrator,Artifact Registry Reader,Artifact Registry Writer
       # Download the JSON key for the service account.
 
       # Set up gcloud CLI (Fixed version)
@@ -91,7 +91,7 @@ jobs:
       # Deploy the Docker image to Google Cloud Run
       - name: Deploy to Google Cloud Run
         run: |
-          gcloud run deploy gayathricctv-rest-api \
+          gcloud run deploy momarketplace-api \
             --image asia-south1-docker.pkg.dev/momarketplace-mock-ecommerce/momarketplace-docker-repo/momarketplace-api-docker-img:latest \
             --platform managed \
             --region asia-south1 \
