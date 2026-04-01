@@ -134,15 +134,20 @@ export class OrderService {
           .flatMap((u) => u.fcmTokens || [])
           .filter((t) => !!t);
         // create message
-        const message: CreateMessageDto = {
-          notification: {
-            title: 'New Order Received',
-            body: `A new order for Rs. ${order.totalAmount} has been placed by ${recipientName}.`,
-          },
-          tokens: adminFcmTokens, // array of saved tokens
-        };
 
-        await this.notificationsService.sendPushToMany(message);
+        if (adminFcmTokens.length === 0) {
+          console.log('No admin FCM tokens found. Skipping notification.');
+        } else {
+          const message: CreateMessageDto = {
+            notification: {
+              title: 'New Order Received',
+              body: `A new order for Rs. ${order.totalAmount} has been placed by ${recipientName}.`,
+            },
+            tokens: adminFcmTokens, // array of saved tokens
+          };
+
+          await this.notificationsService.sendPushToMany(message);
+        }
 
         return orderResult;
       } catch (err) {

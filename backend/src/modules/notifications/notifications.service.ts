@@ -17,12 +17,19 @@ export class NotificationsService implements OnModuleInit {
   }
 
   async sendPushToMany(message: CreateMessageDto) {
-    return admin
-      .messaging()
-      .sendEachForMulticast(message)
-      .then((response) =>
-        console.log('Sent notifications:', response.successCount),
-      )
-      .catch((err) => console.error(err));
+    // Check if tokens array is empty
+    if (!message.tokens || message.tokens.length === 0) {
+      console.log('No FCM tokens to send notifications.');
+      return { successCount: 0 };
+    }
+
+    try {
+      const response = await admin.messaging().sendEachForMulticast(message);
+      console.log('Sent notifications:', response.successCount);
+      return response;
+    } catch (err) {
+      console.error('FCM send error:', err);
+      throw err;
+    }
   }
 }
