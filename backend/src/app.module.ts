@@ -43,21 +43,23 @@ dotenv.config();
     WinstonModule.forRoot({
       transports: [
         new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.printf(
-              ({ level, message, timestamp, url, method }) =>
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                `${timestamp} [${level}] [${method}] ${message} ${url}`,
-            ),
-          ),
-        }),
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.errors({ stack: true }), //  captures stack
-            winston.format.json(), //  keeps ALL fields
-          ),
+          format:
+            process.env.NODE_ENV === 'production'
+              ? winston.format.combine(
+                  winston.format.timestamp(),
+                  winston.format.errors({ stack: true }),
+                  winston.format.json(),
+                )
+              : winston.format.combine(
+                  winston.format.timestamp(),
+                  winston.format.colorize(),
+                  winston.format.printf(
+                    ({ level, message, timestamp, url, method, ...meta }) => {
+                      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                      return `${timestamp} [${level}] [${method}] ${message} ${url} ${JSON.stringify(meta)}`;
+                    },
+                  ),
+                ),
         }),
       ],
     }),

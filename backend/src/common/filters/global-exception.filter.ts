@@ -26,7 +26,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     const exceptionResponse = isHttpException ? exception.getResponse() : null;
 
-    // 🔥 FULL LOG (Cloud Run will capture this)
+    //  FULL LOG (Cloud Run logs)
     this.logger.error({
       message: 'Unhandled Exception',
       path: request.url,
