@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { winstonLogger } from './common/logger/winston.logger';
 import { initializeFirebase } from '@config/firebase.config';
+import { GlobalExceptionFilter } from '@common/filters/global-exception.filter';
 
 async function bootstrap() {
   initializeFirebase();
@@ -21,6 +22,10 @@ async function bootstrap() {
     .addTag('products')
     .build();
 
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('api', app, document); // http://localhost:3000/api
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // removes extra fields
@@ -29,9 +34,8 @@ async function bootstrap() {
     }),
   );
 
-  const document = SwaggerModule.createDocument(app, config);
-
-  SwaggerModule.setup('api', app, document); // http://localhost:3000/api
+  //  Register global exception filter
+  app.useGlobalFilters(new GlobalExceptionFilter());
 
   app.enableCors({
     origin: '*',

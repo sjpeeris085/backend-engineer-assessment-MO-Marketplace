@@ -38,14 +38,28 @@ export class LoggingInterceptor implements NestInterceptor {
         });
       }),
       catchError((error: unknown) => {
+        const err = error as Partial<
+          Error & {
+            response?: unknown;
+            code?: string;
+            detail?: string;
+            query?: string;
+            parameters?: unknown;
+          }
+        >;
+
         this.logger.error({
           message: 'Request Failed',
           method,
           url,
           responseTime: Date.now() - now,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
 
+          errorMessage: err.message ?? 'Unknown error',
+          stack: err.stack,
+          response: err.response,
+          code: err.code,
+          detail: err.detail,
+        });
         return throwError(() => error);
       }),
     );

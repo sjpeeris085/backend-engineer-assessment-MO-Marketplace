@@ -21,24 +21,20 @@ dotenv.config();
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      // host: process.env.DB_HOST,
-      // port: 5432,
-      host: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
+      port:
+        process.env.NODE_ENV === 'production'
+          ? undefined // socket connection ignores port
+          : parseInt(process.env.DB_PORT ?? '5432', 10),
+      host:
+        process.env.NODE_ENV === 'production'
+          ? `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`
+          : process.env.DB_HOST,
       username: process.env.DB_USERNAME, // 'postgres',
       password: process.env.DB_PASSWORD, // 'root'
       database: process.env.DB_NAME, // 'backend_assessment'
       // entities: [Product],
       autoLoadEntities: true,
       synchronize: true, // dev only
-      // synchronize: process.env.NODE_ENV !== 'production',
-
-      // Google Cloud Production
-      // extra:
-      //   process.env.NODE_ENV === 'production'
-      //     ? {
-      //         socketPath: `/cloudsql/${process.env.CLOUD_SQL_CONNECTION_NAME}`,
-      //       }
-      //     : {},
     }),
     ProductsModule,
     OrdersModule,
@@ -54,6 +50,13 @@ dotenv.config();
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 `${timestamp} [${level}] [${method}] ${message} ${url}`,
             ),
+          ),
+        }),
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.errors({ stack: true }), //  captures stack
+            winston.format.json(), //  keeps ALL fields
           ),
         }),
       ],

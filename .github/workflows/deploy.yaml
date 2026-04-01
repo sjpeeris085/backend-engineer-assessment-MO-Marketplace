@@ -98,4 +98,4 @@ jobs:
             --memory 1024Mi \
             --allow-unauthenticated \
             --add-cloudsql-instances ${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
-            --set-env-vars "^|^NODE_ENV=production|DB_USERNAME=postgres|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|DB_NAME=${{ secrets.DB_NAME }}|CLOUD_SQL_CONNECTION_NAME=${{ secrets.CLOUD_SQL_CONNECTION_NAME }}"
+            --set-env-vars "^|^NODE_ENV=production|DB_USERNAME=postgres|DB_PASSWORD=${{ secrets.DB_PASSWORD }}|DB_NAME=${{ secrets.DB_NAME }}|CLOUD_SQL_CONNECTION_NAME=${{ secrets.CLOUD_SQL_CONNECTION_NAME }}|FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}|FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}|FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}" \
